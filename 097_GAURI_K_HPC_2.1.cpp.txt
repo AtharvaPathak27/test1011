@@ -1,0 +1,104 @@
+#include<iostream> // Standard Input/Output Library
+#include<stdlib.h> // Standard Library for functions like rand()
+#include<omp.h> // OpenMP Library for parallel programming
+
+using namespace std;
+double start, stop, start_p, stop_p;
+// Function to perform bubble sort sequentially
+void bubble_seq(int *a, int n)
+{
+    double start_p, stop_p; // Variables to store the start and stop times
+    start_p = omp_get_wtime(); // Record the start time
+
+    // Outer loop for each pass of bubble sort
+    for(int i = 0; i < n; i++) 
+    {       
+        int first = i % 2; // Determining the starting index for this pass
+        
+        // Inner loop for pairwise comparison and swapping
+        for(int j = first; j < n - 1; j += 2)
+        { 
+            // Swap if the current element is greater than the next element
+            if(a[j] > a[j + 1])
+            {       
+                swap(a[j], a[j + 1]);
+            }        
+        }      
+    }
+
+    stop_p = omp_get_wtime(); // Record the stop time
+}
+
+// Function to perform bubble sort in parallel
+void bubble(int *a, int n)
+{
+    double start, stop; // Variables to store the start and stop times
+    start = omp_get_wtime(); // Record the start time
+
+    // Outer loop for each pass of bubble sort
+    for(int i = 0; i < n; i++) 
+    {       
+        int first = i % 2; // Determining the starting index for this pass
+        
+        // Parallel for loop for pairwise comparison and swapping
+// share array a and first among various threads
+        #pragma omp parallel for shared(a, first)
+        for(int j = first; j < n - 1; j += 2)
+        { 
+            // Swap if the current element is greater than the next element
+            if(a[j] > a[j + 1])
+            {       
+                swap(a[j], a[j + 1]);
+            }        
+        }      
+    }
+
+    stop = omp_get_wtime(); // Record the stop time
+}
+
+// Function to swap two integers
+void swap(int &a, int &b)
+{
+    int temp = a;
+    a = b;
+    b = temp;
+}
+
+// Main function
+int main()
+{
+    int *a, n; // Array and its size
+    cout << "\nEnter total number of elements: ";
+    cin >> n;
+  
+    a = new int[n]; // Dynamically allocate memory for the array
+
+    // Fill the array with random numbers
+    for(int i = 0; i < n; i++)
+    {
+        a[i] = rand() % 1000;
+    }
+
+    // Call parallel bubble sort
+    bubble(a, n);
+    cout << "\nSorted array in parallel:\n";
+    for(int i = 0; i < n; i++)
+    {
+        cout << a[i] << " ";
+    }
+
+    // Call sequential bubble sort
+    bubble_seq(a, n);
+    cout << "\nSorted array sequentially:\n";
+    for(int i = 0; i < n; i++)
+    {
+        cout << a[i] << " ";
+    }
+
+    // Print the execution times
+     cout << "\n Time Sequentials = " <<stop-start;
+     cout << "\n Time Parallel = " <<stop_p-start_p;
+  
+
+    return 0;
+}
